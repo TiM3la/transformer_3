@@ -4,7 +4,7 @@ import dearpygui.dearpygui as dpg
 import tkinter as tk
 from tkinter import filedialog
 from classes import *
-import time
+import time, os
 from openpyxl import Workbook
 
 db = ''
@@ -138,6 +138,16 @@ def set_ui_enabled(enabled: bool):
         if dpg.does_item_exist(item):
             dpg.configure_item(item=item, enabled=enabled)
 
+def cleanup_before_exit():
+    """Удаляет временные базы данных при выходе из программы."""
+    for db_path in temp_databases:
+        if os.path.exists(db_path):
+            try:
+                os.remove(db_path)
+                print(f"Удалена временная БД: {db_path}")
+            except Exception as e:
+                print(f"Не удалось удалить {db_path}: {e}")
+
 def load_to_db(sender):
     try:
         global db
@@ -149,7 +159,7 @@ def load_to_db(sender):
             root.withdraw()
             file_path = filedialog.askdirectory()
             dpg.configure_item(item='input_dir', default_value=file_path)
-
+            dpg.configure_item(item='text_1', default_value='Загрузка...')
             db = DateBase(db_name='input_datas.db', exists=False)  # создаем базу данных
 
             input_table_header = [
@@ -193,7 +203,7 @@ def load_to_db(sender):
                     percent = round((all_tables.index(table) + 1) / len(all_tables), 2)
 
                     dpg.configure_item(item='progress_bar', show=True, default_value=percent)
-                    dpg.configure_item(item='text_1', default_value=f'(1/2) {percent * 100} %, осталось {nice_t(t)}')
+                    dpg.configure_item(item='text_1', default_value=f'(1/2) {round(percent * 100, 2)} %, осталось {nice_t(t)}')
 
                 hv_lv_table_header = [
                     'Timestamp_UTC',
@@ -253,7 +263,7 @@ def load_to_db(sender):
                     percent = round((i + step) / num_of_timestamp, 2)
 
                     dpg.configure_item(item='progress_bar', show=True, default_value=percent)
-                    dpg.configure_item(item='text_1', default_value=f'(2/2) {percent * 100} %, осталось {nice_t(t)}')
+                    dpg.configure_item(item='text_1', default_value=f'(2/2) {round(percent * 100, 2)} %, осталось {nice_t(t)}')
 
                 dpg.configure_item(item='text_1', default_value='Данные загружены в базу данных')
                 dpg.configure_item(item='progress_bar', show=False, default_value=0)
@@ -274,6 +284,7 @@ def load_to_db(sender):
         show_error_dialog(f"Ошибка при загрузке данных: {str(e)}")
     finally:
         set_ui_enabled(True)
+        temp_databases.remove(os.path.abspath('data_bases/input_datas.db'))
 
 def calculate():
     try:
@@ -446,7 +457,7 @@ def calculate():
             percent = round((i + step) / count, 2)
 
             dpg.configure_item(item='progress_bar_2', show=True, default_value=percent)
-            dpg.configure_item(item='text_2', default_value=f'{percent * 100} %, осталось {nice_t(t)}')
+            dpg.configure_item(item='text_2', default_value=f'{round(percent * 100, 2)} %, осталось {nice_t(t)}')
 
         dpg.configure_item(item='progress_bar_2', show=False, default_value=0)
         dpg.configure_item('text_2', default_value='Вычисления загружены в базу данных')
@@ -566,7 +577,6 @@ def add_lin_graph(sender, app_data, user_data):
     lin_series[i][j] = None
 
 def build_lin_graph(sender, app_data, user_data):
-    # try:
     global db_2, lin_series
 
     i, j, y_axis = user_data
@@ -637,7 +647,23 @@ def build_lin_graph(sender, app_data, user_data):
     print(f'длина списка x {len(table_for_graph_y)}')
     print(table_for_graph_y, time_label_y, table_for_graph_x, time_label_x)
 
+    with dpg.theme(tag="plot_theme"):
+        with dpg.theme_component(dpg.mvStemSeries):
+            dpg.add_theme_color(dpg.mvPlotCol_Line, (150, 255, 0), category=dpg.mvThemeCat_Plots)
+            dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, dpg.mvPlotMarker_Diamond, category=dpg.mvThemeCat_Plots)
+            dpg.add_theme_style(dpg.mvPlotStyleVar_MarkerSize, 7, category=dpg.mvThemeCat_Plots)
+
+        with dpg.theme_component(dpg.mvScatterSeries):
+            dpg.add_theme_color(dpg.mvPlotCol_Line, (60, 150, 200), category=dpg.mvThemeCat_Plots)
+            dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, dpg.mvPlotMarker_Square, category=dpg.mvThemeCat_Plots)
+            dpg.add_theme_style(dpg.mvPlotStyleVar_MarkerSize, 4, category=dpg.mvThemeCat_Plots)
+
+    # series_color =
     series_id = dpg.add_scatter_series(y=table_for_graph_y, x=table_for_graph_x, parent=y_axis, tag=f'series_{i}_{j}', label=f'{values["y"]} = f({values["x"]})')
+    # dpg.bind_item_theme(series_id, 'plot_theme')
+    # bg_color = series_color[:3] + (80,)
+    # dpg.configure_item(f'lin_graph_{i}_{j}', background_color=bg_color)
+
     print(f'{values["y"]} = f({values["x"]})')
 
     print(tuple(zip(table_for_graph_y, time_label_y)))
@@ -655,13 +681,6 @@ def build_lin_graph(sender, app_data, user_data):
         'y_label': dpg.get_value(f'combo_y_{i}_{j}')
     }
     dpg.set_item_user_data(f'lin_graph_{i}_{j}', graph_data)
-
-    # except Exception as e:
-    #     show_error_dialog(f"Ошибка построения графика: {str(e)}")
-    #     print
-    #     # Скрываем индикатор загрузки при ошибке
-    #     i, j = user_data[:2]  # Берем первые два элемента
-    #     dpg.configure_item(item=f'load_{i}_{j}', show=False)
 
 # Добавляем функцию приближения
 def zoom_graph(sender, app_data, user_data):
@@ -723,6 +742,7 @@ def save_to_excel(sender, app_data, user_data):
         )
 
         if not file_path:  # Пользователь отменил сохранение
+            dpg.configure_item(item=f'load_{i}_{j}', show=False)
             return
 
         try:

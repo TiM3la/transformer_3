@@ -12,15 +12,138 @@ db_2 = ''
 
 step = 10000
 
+lin_fields = []
+dot_fields = []
+
+lin_graphs = []
+lin_series = {}
+lin_axises = {}
+
+items = {
+    # Таймстамп и частота
+    't': 'Timestamp_UTC',
+    'f вн, кГц': 'f_hv',
+    'f нн, кГц': 'f_lv',
+
+    # Высокое напряжение (вн)
+    'UA вн, В': 'UA_hv_value',
+    'UA вн, фаза, °': 'UA_hv_phase',
+    'UB вн, В': 'UB_hv_value',
+    'UB вн, фаза, °': 'UB_hv_phase',
+    'UC вн, В': 'UC_hv_value',
+    'UC вн, фаза, °': 'UC_hv_phase',
+
+    # Токи высокого напряжения (вн)
+    'IA вн, А': 'IA_hv_value',
+    'IA вн, фаза, °': 'IA_hv_phase',
+    'IB вн, А': 'IB_hv_value',
+    'IB вн, фаза, °': 'IB_hv_phase',
+    'IC вн, А': 'IC_hv_value',
+    'IC вн, фаза, °': 'IC_hv_phase',
+
+    # Низкое напряжение (нн)
+    'UA нн, В': 'UA_lv_value',
+    'UA нн, фаза, °': 'UA_lv_phase',
+    'UB нн, В': 'UB_lv_value',
+    'UB нн, фаза, °': 'UB_lv_phase',
+    'UC нн, В': 'UC_lv_value',
+    'UC нн, фаза, °': 'UC_lv_phase',
+
+    # Токи низкого напряжения (нн)
+    'IA нн, А': 'IA_lv_value',
+    'IA нн, фаза, °': 'IA_lv_phase',
+    'IB нн, А': 'IB_lv_value',
+    'IB нн, фаза, °': 'IB_lv_phase',
+    'IC нн, А': 'IC_lv_value',
+    'IC нн, фаза, °': 'IC_lv_phase',
+
+    # Симметричные составляющие
+    'U1 вн, В': 'U1_hv_value',
+    'U1 вн, фаза, °': 'U1_hv_phase',
+    'I1 вн, А': 'I1_hv_value',
+    'I1 вн, фаза, °': 'I1_hv_phase',
+    'U1 нн, В': 'U1_lv_value',
+    'U1 нн, фаза, °': 'U1_lv_phase',
+    'I1 нн, А': 'I1_lv_value',
+    'I1 нн, фаза, °': 'I1_lv_phase',
+
+    # Мешающие параметры
+    'Iм, А': 'I_m',
+    'Iм, фаза, °': 'I_m_phase',
+    'U0, В': 'U0',
+    'U0, фаза, °': 'U0_phase',
+
+    # Параметры сети
+    'R(Т), Ом': 'R_T',
+    'X(Т), Ом': 'X_T',
+    'G(Т), мкСм': 'G_microS_T',
+    'B(Т), мкСм': 'B_microS_T',
+    'R(Г), Ом': 'R_G',
+    'X(Г), Ом': 'X_G',
+    'G(Г), мкСм': 'G_microS_G',
+    'B(Г), мкСм': 'B_microS_G',
+
+    # Мощности
+    'Sвн, ВА': 'S_hv_total',
+    'Pвн, Вт': 'P_hv',
+    'Qвн, вар': 'Q_hv',
+    'Sнн, ВА': 'S_lv_total',
+    'Pнн, Вт': 'P_lv',
+    'Qнн, вар': 'Q_lv',
+
+    # Дельта-параметры
+    'dS, ВА': 'dS_total',
+    'dP, Вт': 'dP',
+    'dQ, вар': 'dQ',
+
+    # Коэффициенты
+    'Kз, %': 'Kz_percent',
+    'Kт': 'Kt',
+    'KПД, %': 'Kpd',
+
+    'dSкз(Т), ВА': 'S_kz_T',
+    'dPкз(Т), Вт': 'P_kz_T',
+    'dQкз(Т), вар': 'Q_kz_T',
+
+    'dSхх(Т), ВА': 'S_hh_G',
+    'dPхх(Т), Вт': 'P_hh_G',
+    'dQхх(Т), вар': 'Q_hh_G',
+
+    'dSкз(Г), ВА': 'S_kz_G',
+    'dPкз(Г), Вт': 'P_kz_G',
+    'dQкз(Г), вар': 'Q_kz_G',
+
+    'dSхх(Г), ВА': 'S_hh_G',
+    'dPхх(Г), Вт': 'P_hh_G',
+    'dQхх(Г), вар': 'Q_hh_G',
+
+    'bR(Т), %': 'bR_T',
+    'bX(Т), %': 'bX_T',
+    'bG(Т), %': 'bG_T',
+    'bB(Т), %': 'bB_T',
+
+    'bR(Г), %': 'bR_G',
+    'bX(Г), %': 'bX_G',
+    'bG(Г), %': 'bG_G',
+    'bB(Г), %': 'bB_G',
+}
 
 def set_ui_enabled(enabled: bool):
-    pass
+    item_list = [
+        'btn_about',
+        'group_load',
+        'calc_group'
+    ]
+    for item in item_list:
+        if dpg.does_item_exist(item):
+            dpg.configure_item(item=item, enabled=enabled)
 
 def load_to_db(sender):
     try:
         global db
 
         set_ui_enabled(False)
+
         if sender == 'btn_table':
             root = tk.Tk()
             root.withdraw()
@@ -155,6 +278,8 @@ def load_to_db(sender):
 def calculate():
     try:
         global db, db_2
+
+        set_ui_enabled(False)
 
         ki_lv = float(dpg.get_value(item='kt nn').replace(',', '.'))
         ku_hv = float(dpg.get_value(item='kn vn').replace(',', '.'))
@@ -328,6 +453,8 @@ def calculate():
         dpg.configure_item('add_lin_graph_btn', show=True)
     except Exception as e:
         show_error_dialog(f"Ошибка при расчете: {str(e)}")
+    finally:
+        set_ui_enabled(True)
 def calc_trans():
     try:
         katalog_1 = KatalogData(
@@ -353,6 +480,8 @@ def load_calc_file():
     try:
         global db_2
 
+        set_ui_enabled(False)
+
         root = tk.Tk()
         root.withdraw()
         file_path = filedialog.askopenfilename(filetypes=[("Data base files", ".db")])
@@ -364,123 +493,8 @@ def load_calc_file():
             dpg.configure_item('add_lin_graph_btn', show=True)
     except Exception as e:
         show_error_dialog(f"Ошибка загрузки файла: {str(e)}")
-
-
-lin_fields = []
-dot_fields = []
-
-lin_graphs = []
-lin_series = {}
-lin_axises = {}
-
-items = {
-    # Таймстамп и частота
-    't': 'Timestamp_UTC',
-    'f вн, кГц': 'f_hv',
-    'f нн, кГц': 'f_lv',
-
-    # Высокое напряжение (вн)
-    'UA вн, В': 'UA_hv_value',
-    'UA вн, фаза, °': 'UA_hv_phase',
-    'UB вн, В': 'UB_hv_value',
-    'UB вн, фаза, °': 'UB_hv_phase',
-    'UC вн, В': 'UC_hv_value',
-    'UC вн, фаза, °': 'UC_hv_phase',
-
-    # Токи высокого напряжения (вн)
-    'IA вн, А': 'IA_hv_value',
-    'IA вн, фаза, °': 'IA_hv_phase',
-    'IB вн, А': 'IB_hv_value',
-    'IB вн, фаза, °': 'IB_hv_phase',
-    'IC вн, А': 'IC_hv_value',
-    'IC вн, фаза, °': 'IC_hv_phase',
-
-    # Низкое напряжение (нн)
-    'UA нн, В': 'UA_lv_value',
-    'UA нн, фаза, °': 'UA_lv_phase',
-    'UB нн, В': 'UB_lv_value',
-    'UB нн, фаза, °': 'UB_lv_phase',
-    'UC нн, В': 'UC_lv_value',
-    'UC нн, фаза, °': 'UC_lv_phase',
-
-    # Токи низкого напряжения (нн)
-    'IA нн, А': 'IA_lv_value',
-    'IA нн, фаза, °': 'IA_lv_phase',
-    'IB нн, А': 'IB_lv_value',
-    'IB нн, фаза, °': 'IB_lv_phase',
-    'IC нн, А': 'IC_lv_value',
-    'IC нн, фаза, °': 'IC_lv_phase',
-
-    # Симметричные составляющие
-    'U1 вн, В': 'U1_hv_value',
-    'U1 вн, фаза, °': 'U1_hv_phase',
-    'I1 вн, А': 'I1_hv_value',
-    'I1 вн, фаза, °': 'I1_hv_phase',
-    'U1 нн, В': 'U1_lv_value',
-    'U1 нн, фаза, °': 'U1_lv_phase',
-    'I1 нн, А': 'I1_lv_value',
-    'I1 нн, фаза, °': 'I1_lv_phase',
-
-    # Мешающие параметры
-    'Iм, А': 'I_m',
-    'Iм, фаза, °': 'I_m_phase',
-    'U0, В': 'U0',
-    'U0, фаза, °': 'U0_phase',
-
-    # Параметры сети
-    'R(Т), Ом': 'R_T',
-    'X(Т), Ом': 'X_T',
-    'G(Т), мкСм': 'G_microS_T',
-    'B(Т), мкСм': 'B_microS_T',
-    'R(Г), Ом': 'R_G',
-    'X(Г), Ом': 'X_G',
-    'G(Г), мкСм': 'G_microS_G',
-    'B(Г), мкСм': 'B_microS_G',
-
-    # Мощности
-    'Sвн, ВА': 'S_hv_total',
-    'Pвн, Вт': 'P_hv',
-    'Qвн, вар': 'Q_hv',
-    'Sнн, ВА': 'S_lv_total',
-    'Pнн, Вт': 'P_lv',
-    'Qнн, вар': 'Q_lv',
-
-    # Дельта-параметры
-    'dS, ВА': 'dS_total',
-    'dP, Вт': 'dP',
-    'dQ, вар': 'dQ',
-
-    # Коэффициенты
-    'Kз, %': 'Kz_percent',
-    'Kт': 'Kt',
-    'KПД, %': 'Kpd',
-
-    'dSкз(Т), ВА': 'S_kz_T',
-    'dPкз(Т), Вт': 'P_kz_T',
-    'dQкз(Т), вар': 'Q_kz_T',
-
-    'dSхх(Т), ВА': 'S_hh_G',
-    'dPхх(Т), Вт': 'P_hh_G',
-    'dQхх(Т), вар': 'Q_hh_G',
-
-    'dSкз(Г), ВА': 'S_kz_G',
-    'dPкз(Г), Вт': 'P_kz_G',
-    'dQкз(Г), вар': 'Q_kz_G',
-
-    'dSхх(Г), ВА': 'S_hh_G',
-    'dPхх(Г), Вт': 'P_hh_G',
-    'dQхх(Г), вар': 'Q_hh_G',
-
-    'bR(Т), %': 'bR_T',
-    'bX(Т), %': 'bX_T',
-    'bG(Т), %': 'bG_T',
-    'bB(Т), %': 'bB_T',
-
-    'bR(Г), %': 'bR_G',
-    'bX(Г), %': 'bX_G',
-    'bG(Г), %': 'bG_G',
-    'bB(Г), %': 'bB_G',
-}
+    finally:
+        set_ui_enabled(True)
 
 def comma_input_callback(sender, app_data):
     if isinstance(app_data, str):
@@ -813,9 +827,47 @@ def show_about_callback():
     dpg.set_item_pos("about_window", [pos_x, pos_y])
     dpg.show_item("about_window")
 
+def show_help():
+    # Размеры viewport (клиентская область)
+    vp_width = dpg.get_viewport_client_width()
+    vp_height = dpg.get_viewport_client_height()
+
+    # Размеры окна "about_window" (можно взять из задания или получить динамически)
+    win_width = 600  # как задано при создании
+    win_height = 600  # как задано при создании
+
+    # Координаты для центрирования
+    pos_x = (vp_width - win_width) // 2
+    pos_y = (vp_height - win_height) // 2
+
+    # Устанавливаем позицию и показываем окно
+    dpg.set_item_pos("help_window", [pos_x, pos_y])
+    dpg.show_item("help_window")
+
+def show_picture(parent, file_path, size, scale):
+    w, h, _, data = dpg.load_image(file_path)
+    with dpg.texture_registry():
+        tex = dpg.add_static_texture(w, h, data)
+    dpg.add_image(tex, parent=parent, width=size[0] * scale, height=size[1] * scale)
+
+def show_help_calc():
+    # Размеры viewport (клиентская область)
+    vp_width = dpg.get_viewport_client_width()
+    vp_height = dpg.get_viewport_client_height()
+
+    # Размеры окна "about_window" (можно взять из задания или получить динамически)
+    win_width = 600  # как задано при создании
+    win_height = 600  # как задано при создании
+
+    # Координаты для центрирования
+    pos_x = (vp_width - win_width) // 2
+    pos_y = (vp_height - win_height) // 2
+
+    # Устанавливаем позицию и показываем окно
+    dpg.set_item_pos("help_calc_window", [pos_x, pos_y])
+    dpg.show_item("help_calc_window")
+
 dpg.create_context()
-
-
 
 # загружаем шрифты
 if True:
@@ -836,7 +888,7 @@ if True:
                 biglet += 1  # choose next letter
             dpg.bind_font(default_font)
 
-dpg.create_viewport(title='Transformer', width=1400, height=850)
+dpg.create_viewport(title='Transformer', width=1400, height=950)
 
 with dpg.window(tag='win1', width=550, height=350):
     with dpg.table(header_row=False, width=-1):
@@ -844,100 +896,104 @@ with dpg.window(tag='win1', width=550, height=350):
         dpg.add_table_column(width_fixed=True, init_width_or_weight=120)  # правая под кнопку
         with dpg.table_row():
             dpg.add_text("")  # пустота слева
-            dpg.add_button(label="О программе", width=120, callback=show_about_callback)
+            dpg.add_button(tag='btn_about', label="О программе", width=120, callback=show_about_callback)
 
     with dpg.tab_bar(tag='tab_bar1'):
         with dpg.tab(label='Загрузка данных', tag='tab_1'):
-            with dpg.group(horizontal=True):
-                dpg.add_button(label='Загрузить таблицы', tag='btn_table', callback=load_to_db)
-                dpg.add_button(label='Загрузить файл базы данных', tag='btn_db', callback=load_to_db)
-            dpg.add_input_text(default_value='', tag='input_dir', callback=comma_input_callback, width=-1)
-            dpg.add_progress_bar(default_value=0, tag='progress_bar', overlay='', show=False)
-            dpg.add_text(tag='text_1', default_value='')
+            with dpg.group(horizontal=False, tag='group_load'):
+                with dpg.group(horizontal=True):
+                    dpg.add_button(label='Загрузить таблицы', tag='btn_table', callback=load_to_db)
+                    dpg.add_button(label='Загрузить файл базы данных', tag='btn_db', callback=load_to_db)
+                    dpg.add_button(label='?', tag='help_btn', callback=show_help)
+                dpg.add_input_text(default_value='', tag='input_dir', callback=comma_input_callback, width=-1)
+                dpg.add_progress_bar(default_value=0, tag='progress_bar', overlay='', show=False)
+                dpg.add_text(tag='text_1', default_value='')
         with dpg.tab(label='Расчет', tag='tab_2'):
-                    dpg.add_text(default_value='Каталожные данные трансформатора')
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='S, МВА =')
-                        dpg.add_input_text(tag='S', width=100, default_value='2,5', callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Uном вн, кВ =')
-                        dpg.add_input_text(tag='U vn', width=100, default_value='6', callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Uном нн, кВ =')
-                        dpg.add_input_text(tag='U nn', width=100, default_value='0,4', callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Uк, % =')
-                        dpg.add_input_text(tag='U k', width=100, default_value='7', callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='dPк, кВт =')
-                        dpg.add_input_text(tag='dPk', width=100, default_value='20,7', callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='dPx, кВт =')
-                        dpg.add_input_text(tag='Phh', width=100, default_value='5,04', callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Ix, % =')
-                        dpg.add_input_text(tag='Ihh', width=100, default_value='0,8', callback=comma_input_callback)
-                    dpg.add_separator()
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Расчетные данные трансформатора')
-                        dpg.add_button(label='Рассчитать', tag='calc_trans_btn', callback=calc_trans)
+            with dpg.group(horizontal=False, tag='calc_group'):
+                dpg.add_text(default_value='Каталожные данные трансформатора')
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='S, МВА =')
+                    dpg.add_input_text(tag='S', width=100, default_value='2,5', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Uном вн, кВ =')
+                    dpg.add_input_text(tag='U vn', width=100, default_value='6', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Uном нн, кВ =')
+                    dpg.add_input_text(tag='U nn', width=100, default_value='0,4', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Uк, % =')
+                    dpg.add_input_text(tag='U k', width=100, default_value='7', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='dPк, кВт =')
+                    dpg.add_input_text(tag='dPk', width=100, default_value='20,7', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='dPx, кВт =')
+                    dpg.add_input_text(tag='Phh', width=100, default_value='5,04', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Ix, % =')
+                    dpg.add_input_text(tag='Ihh', width=100, default_value='0,8', callback=comma_input_callback)
+                dpg.add_separator()
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Расчетные данные трансформатора')
+                    dpg.add_button(label='Рассчитать', tag='calc_trans_btn', callback=calc_trans)
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='dQх, квар =')
-                        dpg.add_input_text(tag='dQ', width=100, callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Rт, Ом =')
-                        dpg.add_input_text(tag='Rt', width=100, callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Xт, Ом =')
-                        dpg.add_input_text(tag='Xt', width=100, callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Gт, мкСм =')
-                        dpg.add_input_text(tag='Gt', width=100, callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Bт, мкСм =')
-                        dpg.add_input_text(tag='Bt', width=100, callback=comma_input_callback)
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Kт =')
-                        dpg.add_input_text(tag='kt', width=100, callback=comma_input_callback)
-                    dpg.add_separator()
-                    dpg.add_text(default_value='Коэффициенты трансформации ИТТ, ИТН')
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='dQх, квар =')
+                    dpg.add_input_text(tag='dQ', width=100, callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Rт, Ом =')
+                    dpg.add_input_text(tag='Rt', width=100, callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Xт, Ом =')
+                    dpg.add_input_text(tag='Xt', width=100, callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Gт, мкСм =')
+                    dpg.add_input_text(tag='Gt', width=100, callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Bт, мкСм =')
+                    dpg.add_input_text(tag='Bt', width=100, callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Kт =')
+                    dpg.add_input_text(tag='kt', width=100, callback=comma_input_callback)
+                dpg.add_separator()
+                dpg.add_text(default_value='Коэффициенты трансформации ИТТ, ИТН')
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Кт вн =')
-                        dpg.add_input_text(tag='kt vn', width=100, default_value='60', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Кт вн =')
+                    dpg.add_input_text(tag='kt vn', width=100, default_value='60', callback=comma_input_callback)
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Кн вн =')
-                        dpg.add_input_text(tag='kn vn', width=100, default_value='60', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Кн вн =')
+                    dpg.add_input_text(tag='kn vn', width=100, default_value='60', callback=comma_input_callback)
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Кт нн =')
-                        dpg.add_input_text(tag='kt nn', width=100, default_value='800', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Кт нн =')
+                    dpg.add_input_text(tag='kt nn', width=100, default_value='800', callback=comma_input_callback)
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Кн нн =')
-                        dpg.add_input_text(tag='kn nn', width=100, default_value='1', callback=comma_input_callback)
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Кн нн =')
+                    dpg.add_input_text(tag='kn nn', width=100, default_value='1', callback=comma_input_callback)
 
-                    dpg.add_separator()
-                    with dpg.group(horizontal=True):
-                        dpg.add_text(default_value='Учитывать коэффициенты систематической погрешности ТН')
-                        dpg.add_checkbox(tag='koff', default_value=True, callback=show_grex, user_data='koff')
-                    with dpg.group(horizontal=True, tag='grex_group'):
-                        dpg.add_text(default_value='a =')
-                        dpg.add_input_text(tag='kn vn a', width=100, default_value='0,0044', callback=comma_input_callback)
+                dpg.add_separator()
+                with dpg.group(horizontal=True):
+                    dpg.add_text(default_value='Учитывать коэффициенты систематической погрешности ТН')
+                    dpg.add_checkbox(tag='koff', default_value=True, callback=show_grex, user_data='koff')
+                with dpg.group(horizontal=True, tag='grex_group'):
+                    dpg.add_text(default_value='a =')
+                    dpg.add_input_text(tag='kn vn a', width=100, default_value='0,0044', callback=comma_input_callback)
 
-                        dpg.add_text(default_value='w =')
-                        dpg.add_input_text(tag='kn vn w', width=100, default_value='0,01467', callback=comma_input_callback)
-                    dpg.add_separator()
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(label='Рассчитать и загрузить в базу данных', tag='calculate_btn', callback=calculate)
-                        dpg.add_button(label='Загрузить файл базы данных вычислений', tag='load_calc_btn', callback=load_calc_file)
-                    dpg.add_progress_bar(default_value=0, tag='progress_bar_2', show=False)
-                    dpg.add_text(tag='text_2', default_value='')
+                    dpg.add_text(default_value='w =')
+                    dpg.add_input_text(tag='kn vn w', width=100, default_value='0,01467', callback=comma_input_callback)
+                dpg.add_separator()
+                with dpg.group(horizontal=True):
+                    dpg.add_button(label='Рассчитать и загрузить в базу данных', tag='calculate_btn', callback=calculate)
+                    dpg.add_button(label='Загрузить файл базы данных вычислений', tag='load_calc_btn', callback=load_calc_file)
+                    dpg.add_button(label='?', tag='help_calc_btn', callback=show_help_calc)
+                dpg.add_progress_bar(default_value=0, tag='progress_bar_2', show=False)
+                dpg.add_text(tag='text_2', default_value='')
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(label='Добавить поле точечных графиков', tag='add_lin_graph_btn', show=False, callback=add_lin_plot)
+                with dpg.group(horizontal=True):
+                    dpg.add_button(label='Добавить поле точечных графиков', tag='add_lin_graph_btn', show=False, callback=add_lin_plot)
 
 with dpg.window(label="О программе", tag="about_window", width=600, height=600, show=False):
     dpg.add_text("Transformer 3.0")
@@ -959,10 +1015,18 @@ with dpg.window(label="О программе", tag="about_window", width=600, he
     dpg.add_text("Мартусенко Виталий Евгеньевич")
     dpg.add_text("Мхце Ренат Казбекович")
 
+with dpg.window(label="Помощь: загрузка данных", tag="help_window", width=600, height=600, show=False):
+    dpg.add_text('Чтобы преобразовать следующую структуру файлов:', wrap=600)
+    show_picture('help_window', "media/help_1.jpg", size=(372 * 2, 207 * 2), scale=0.75)
+    dpg.add_text('в файл базы данных input_datas.db, с помощью кнопки "Загрузить таблицы" выберите папку, содержащую все нужные файлы. В этом примере - PMU TP-412-2024971...', wrap=550)
+    dpg.add_text('Чтобы загрузить базу данных, полученную в результате предыдущей инструкции, с помощью кнопки "Загрузить файл базы данных" выберите файл формата .db', wrap=550)
+
+with dpg.window(label="Помощь: расчет", tag="help_calc_window", width=600, height=600, show=False):
+    dpg.add_text('При загрузке таблиц или файла базы данных во вкладке "Загрузка данных" произведите расчет с помощью кнопки "Рассчитать и загрузить в базу данных". В результате будет получен файл базы данных calculate_data.db', wrap=550)
+    dpg.add_text('Если же ранее был проведен расчет с помощью инструкции выше, загрузить файл "calculate_data.db" можно с помощью кнопки "Загрузить файл базы данных вычислений"', wrap=550)
 
 
-
-
+dpg.set_viewport_pos((20, 20))
 dpg.set_primary_window('win1', True)
 dpg.setup_dearpygui()
 dpg.show_viewport()

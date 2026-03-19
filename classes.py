@@ -27,8 +27,6 @@ class DateBase:
 
         print(f'Создана таблица {table_name}')
 
-
-
         self.cursor.execute(query)
         self.cursor.execute(f'CREATE INDEX IF NOT EXISTS idx_timestamp ON {table_name} (Timestamp_UTC)')
 
@@ -104,30 +102,6 @@ class DbTable:
                 modul = row[3].modul / (1 + kn_vn_a)
                 phase = row[3].phase_deg - kn_vn_w
                 row[3] = ComplexValue(modul, phase) * ku_hv
-
-                # modul = (-1 - kt_vn_c + m.sqrt((1 + kt_vn_c) ** 2 + 4 * kt_vn_d * row[4].modul)) / (2 * kt_vn_d)
-                # phase = row[4].phase_deg - kt_vn_g - kt_vn_h * modul
-                # row[4] = ComplexValue(modul, phase) * ki_hv
-                #
-                # modul = (-1 - kt_vn_c + m.sqrt((1 + kt_vn_c) ** 2 + 4 * kt_vn_d * row[5].modul)) / (2 * kt_vn_d)
-                # phase = row[5].phase_deg - kt_vn_g - kt_vn_h * modul
-                # row[5] = ComplexValue(modul, phase) * ki_hv
-                #
-                # modul = (-1 - kt_vn_c + m.sqrt((1 + kt_vn_c) ** 2 + 4 * kt_vn_d * row[6].modul)) / (2 * kt_vn_d)
-                # phase = row[6].phase_deg - kt_vn_g - kt_vn_h * modul
-                # row[6] = ComplexValue(modul, phase) * ki_hv
-                #
-                # modul = (-1 - kt_nn_e + m.sqrt((1 + kt_nn_e) ** 2 + 4 * kt_nn_f * row[11].modul)) / (2 * kt_nn_f)
-                # phase = row[11].phase_deg - kt_nn_p - kt_nn_q * modul
-                # row[11] = ComplexValue(modul, phase) * ki_lv
-                #
-                # modul = (-1 - kt_nn_e + m.sqrt((1 + kt_nn_e) ** 2 + 4 * kt_nn_f * row[12].modul)) / (2 * kt_nn_f)
-                # phase = row[12].phase_deg - kt_nn_p - kt_nn_q * modul
-                # row[12] = ComplexValue(modul, phase) * ki_lv
-                #
-                # modul = (-1 - kt_nn_e + m.sqrt((1 + kt_nn_e) ** 2 + 4 * kt_nn_f * row[13].modul)) / (2 * kt_nn_f)
-                # phase = row[13].phase_deg - kt_nn_p - kt_nn_q * modul
-                # row[13] = ComplexValue(modul, phase) * ki_lv
 
             # создаем трансформатор
             A = Phase(row[4], row[1])
@@ -233,7 +207,6 @@ class DbTable:
                     new_row.extend([e.modul, e.phase_deg])
                 else:
                     new_row.append(e)
-                # print(new_row, len(new_row))
             new_table.append(list(map(lambda x: round(x, 4) if type(x) is float else x, new_row)))
         self.str_data = new_table
 
@@ -408,9 +381,7 @@ class ThreePhaseSystem:
 # трансформатор
 class Transformer:
     def __init__(
-            self, high_side: ThreePhaseSystem, low_side: ThreePhaseSystem, Snom, kt,
-            kn_vn_a, kn_vn_w,
-            T
+            self, high_side: ThreePhaseSystem, low_side: ThreePhaseSystem, Snom, kt
     ):
         self.nn = low_side
         self.vn = high_side
@@ -466,9 +437,6 @@ class Transformer:
         self.Qkz_G = self.Skz_G.imag
 
         # отклонения вычисленных параметров
-
-
-
 
     def __str__(self):
         return f'R = {self.Z_kat.real}, X = {self.Z_kat.imag}, G = {self.Ym.real}, B = {-self.Ym.imag}, k2_nn = {self.nn.k2}, k2_vn = {self.vn.k2}, dP = {self.dP}, dQ = {self.dQ}, kz = {self.kz}, U0 = {self.U0}'

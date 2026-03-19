@@ -520,13 +520,10 @@ def show_error_dialog(message):
 def add_lin_plot():
     global lin_fields, lin_axises
 
-
-
     if len(lin_fields) == 0:
         i = 1
     else:
         i = lin_fields[-1] + 1
-
 
     with dpg.tab(parent='tab_bar1', tag=f'lin_field_{i}', label=f'Поле {i}'):
         lin_fields.append(i)
@@ -598,8 +595,6 @@ def build_lin_graph(sender, app_data, user_data):
 
     graph_limit = 10000
 
-
-
     count_dots = db_2.select_table(f"SELECT COUNT({items[values['y']]}) FROM all_values WHERE Timestamp_UTC >= '{values['time_1']}' AND Timestamp_UTC < '{values['time_2']}'")[0][0]
     print(f'количество точек всего {count_dots}')
 
@@ -614,7 +609,6 @@ def build_lin_graph(sender, app_data, user_data):
         values['dt'] = graph_limit * 0.02
 
     print(f'количество точек всего {count_dots}, надо усреднять по {values["dt"]} с')
-
 
     table_for_graph_y = []
     table_for_graph_x = []
@@ -819,7 +813,7 @@ def show_about_callback():
     vp_width = dpg.get_viewport_client_width()
     vp_height = dpg.get_viewport_client_height()
 
-    # Размеры окна "about_window" (можно взять из задания или получить динамически)
+    # Размеры окна "about_window"
     win_width = 600  # как задано при создании
     win_height = 600  # как задано при создании
 
@@ -836,7 +830,7 @@ def show_help():
     vp_width = dpg.get_viewport_client_width()
     vp_height = dpg.get_viewport_client_height()
 
-    # Размеры окна "about_window" (можно взять из задания или получить динамически)
+    # Размеры окна "about_window"
     win_width = 600  # как задано при создании
     win_height = 600  # как задано при создании
 
@@ -1030,7 +1024,6 @@ with dpg.window(label="Помощь: загрузка данных", tag="help_w
     show_picture('help_window', "media/help_1.jpg", size=(372 * 2, 207 * 2), scale=0.75)
     dpg.add_text('в файл базы данных input_datas.db, с помощью кнопки "Загрузить таблицы" выберите папку, содержащую все нужные файлы. В этом примере - PMU TP-412-2024971...', wrap=550)
     dpg.add_text('Чтобы загрузить базу данных, полученную в результате предыдущей инструкции, с помощью кнопки "Загрузить файл базы данных" выберите файл формата .db', wrap=550)
-
 
 with dpg.window(label="Помощь: расчет", tag="help_calc_window", width=600, height=600, show=False, modal=True):
 

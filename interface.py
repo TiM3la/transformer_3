@@ -6,6 +6,7 @@ from tkinter import filedialog
 from classes import *
 import time, os
 from openpyxl import Workbook
+import colorsys, random
 
 db = ''
 db_2 = ''
@@ -128,6 +129,14 @@ items = {
     'bB(Г), %': 'bB_G',
 }
 
+def random_color_hsv(alpha=255):
+    h = random.random()            # 0..1
+    s = random.uniform(0.6, 0.9)   # насыщенность
+    v = random.uniform(0.7, 0.95)  # яркость
+
+    r, g, b = colorsys.hsv_to_rgb(h, s, v)
+    return (int(r * 255), int(g * 255), int(b * 255), alpha)
+
 def set_ui_enabled(enabled: bool):
     item_list = [
         'btn_about',
@@ -137,16 +146,6 @@ def set_ui_enabled(enabled: bool):
     for item in item_list:
         if dpg.does_item_exist(item):
             dpg.configure_item(item=item, enabled=enabled)
-
-def cleanup_before_exit():
-    """Удаляет временные базы данных при выходе из программы."""
-    for db_path in temp_databases:
-        if os.path.exists(db_path):
-            try:
-                os.remove(db_path)
-                print(f"Удалена временная БД: {db_path}")
-            except Exception as e:
-                print(f"Не удалось удалить {db_path}: {e}")
 
 def load_to_db(sender):
     try:
@@ -159,7 +158,8 @@ def load_to_db(sender):
             root.withdraw()
             file_path = filedialog.askdirectory()
             dpg.configure_item(item='input_dir', default_value=file_path)
-            dpg.configure_item(item='text_1', default_value='Загрузка...')
+            if file_path:
+                dpg.configure_item(item='text_1', default_value='Загрузка...')
             db = DateBase(db_name='input_datas.db', exists=False)  # создаем базу данных
 
             input_table_header = [
@@ -284,7 +284,6 @@ def load_to_db(sender):
         show_error_dialog(f"Ошибка при загрузке данных: {str(e)}")
     finally:
         set_ui_enabled(True)
-        temp_databases.remove(os.path.abspath('data_bases/input_datas.db'))
 
 def calculate():
     try:
@@ -559,7 +558,7 @@ def add_lin_graph(sender, app_data, user_data):
 
     with dpg.group(horizontal=True, parent=f'lin_field_{i}', tag=f'lin_graph_{i}_{j}'):
         dpg.add_button(label='-', callback=del_lin_graph, user_data=[i, j])
-        dpg.add_text(default_value='y =')
+        dpg.add_text(default_value=f'({j}) y =')
         dpg.add_combo(items=list(items.keys()), width=150, tag=f'combo_y_{i}_{j}')
         dpg.add_text(default_value='x =')
         dpg.add_combo(items=list(items.keys()), width=150, tag=f'combo_x_{i}_{j}')
@@ -647,22 +646,7 @@ def build_lin_graph(sender, app_data, user_data):
     print(f'длина списка x {len(table_for_graph_y)}')
     print(table_for_graph_y, time_label_y, table_for_graph_x, time_label_x)
 
-    with dpg.theme(tag="plot_theme"):
-        with dpg.theme_component(dpg.mvStemSeries):
-            dpg.add_theme_color(dpg.mvPlotCol_Line, (150, 255, 0), category=dpg.mvThemeCat_Plots)
-            dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, dpg.mvPlotMarker_Diamond, category=dpg.mvThemeCat_Plots)
-            dpg.add_theme_style(dpg.mvPlotStyleVar_MarkerSize, 7, category=dpg.mvThemeCat_Plots)
-
-        with dpg.theme_component(dpg.mvScatterSeries):
-            dpg.add_theme_color(dpg.mvPlotCol_Line, (60, 150, 200), category=dpg.mvThemeCat_Plots)
-            dpg.add_theme_style(dpg.mvPlotStyleVar_Marker, dpg.mvPlotMarker_Square, category=dpg.mvThemeCat_Plots)
-            dpg.add_theme_style(dpg.mvPlotStyleVar_MarkerSize, 4, category=dpg.mvThemeCat_Plots)
-
-    # series_color =
-    series_id = dpg.add_scatter_series(y=table_for_graph_y, x=table_for_graph_x, parent=y_axis, tag=f'series_{i}_{j}', label=f'{values["y"]} = f({values["x"]})')
-    # dpg.bind_item_theme(series_id, 'plot_theme')
-    # bg_color = series_color[:3] + (80,)
-    # dpg.configure_item(f'lin_graph_{i}_{j}', background_color=bg_color)
+    series_id = dpg.add_scatter_series(y=table_for_graph_y, x=table_for_graph_x, parent=y_axis, tag=f'series_{i}_{j}', label=f'({j}) {values["y"]} = f({values["x"]})')
 
     print(f'{values["y"]} = f({values["x"]})')
 
@@ -908,9 +892,15 @@ if True:
                 biglet += 1  # choose next letter
             dpg.bind_font(default_font)
 
-dpg.create_viewport(title='Transformer', width=1400, height=950)
+root = tk.Tk()
+root.withdraw()
+w = root.winfo_screenwidth() * 0.8
+h = root.winfo_screenheight() * 0.8
+root.destroy()
 
-with dpg.window(tag='win1', width=550, height=350):
+dpg.create_viewport(title='Transformer')
+
+with dpg.window(tag='win1', width=w, height=h):
     with dpg.table(header_row=False, width=-1):
         dpg.add_table_column(width_stretch=True)  # левая колонка занимает всё свободное место
         dpg.add_table_column(width_fixed=True, init_width_or_weight=120)  # правая под кнопку
@@ -1015,7 +1005,7 @@ with dpg.window(tag='win1', width=550, height=350):
                 with dpg.group(horizontal=True):
                     dpg.add_button(label='Добавить поле точечных графиков', tag='add_lin_graph_btn', show=False, callback=add_lin_plot)
 
-with dpg.window(label="О программе", tag="about_window", width=600, height=600, show=False):
+with dpg.window(label="О программе", tag="about_window", width=600, height=600, show=False, modal=True):
     dpg.add_text("Transformer 3.0")
     dpg.add_text("17.03.2026")
     dpg.add_separator()
@@ -1030,24 +1020,26 @@ with dpg.window(label="О программе", tag="about_window", width=600, he
     dpg.add_text("Максименко Яна Александровна - MaximenkoYAA@yandex.ru")
     dpg.add_text("Кононов Юрий Григорьевич - iukononov@ncfu.ru")
     dpg.add_text("Звада Павел Александрович")
-    dpg.add_text("Овчаренко Александр Витальевич")
-    dpg.add_text("Арчебасов Владислав Юрьевич")
     dpg.add_text("Мартусенко Виталий Евгеньевич")
+    dpg.add_text("Овчаренко Александр Витальевич")
     dpg.add_text("Мхце Ренат Казбекович")
+    dpg.add_text("Арчебасов Владислав Юрьевич")
 
-with dpg.window(label="Помощь: загрузка данных", tag="help_window", width=600, height=600, show=False):
+with dpg.window(label="Помощь: загрузка данных", tag="help_window", width=600, height=600, show=False, modal=True):
     dpg.add_text('Чтобы преобразовать следующую структуру файлов:', wrap=600)
     show_picture('help_window', "media/help_1.jpg", size=(372 * 2, 207 * 2), scale=0.75)
     dpg.add_text('в файл базы данных input_datas.db, с помощью кнопки "Загрузить таблицы" выберите папку, содержащую все нужные файлы. В этом примере - PMU TP-412-2024971...', wrap=550)
     dpg.add_text('Чтобы загрузить базу данных, полученную в результате предыдущей инструкции, с помощью кнопки "Загрузить файл базы данных" выберите файл формата .db', wrap=550)
 
-with dpg.window(label="Помощь: расчет", tag="help_calc_window", width=600, height=600, show=False):
+
+with dpg.window(label="Помощь: расчет", tag="help_calc_window", width=600, height=600, show=False, modal=True):
+
     dpg.add_text('При загрузке таблиц или файла базы данных во вкладке "Загрузка данных" произведите расчет с помощью кнопки "Рассчитать и загрузить в базу данных". В результате будет получен файл базы данных calculate_data.db', wrap=550)
     dpg.add_text('Если же ранее был проведен расчет с помощью инструкции выше, загрузить файл "calculate_data.db" можно с помощью кнопки "Загрузить файл базы данных вычислений"', wrap=550)
 
-
-dpg.set_viewport_pos((20, 20))
 dpg.set_primary_window('win1', True)
+
+
 dpg.setup_dearpygui()
 dpg.show_viewport()
 dpg.start_dearpygui()
